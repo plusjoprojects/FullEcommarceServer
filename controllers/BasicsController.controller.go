@@ -270,6 +270,14 @@ func StoreItems(c *gin.Context) {
 
 	config.DB.Scopes(models.WithTranslation("items")).Preload("Categories").Preload("SubCategories").Where("id = ?", item.ID).First(&item)
 
+	storagesItems := models.StoragesItems{
+		ItemID:       item.ID,
+		StorageScope: "All",
+		Qty:          0,
+	}
+
+	config.DB.Create(&storagesItems)
+
 	c.JSON(200, gin.H{
 		"item": item,
 	})

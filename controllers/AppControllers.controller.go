@@ -42,20 +42,20 @@ func AppIndex(c *gin.Context) {
 
 	// Index Select For You Items
 	var selectForYouItemsFirst []models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Order("RAND()").Limit(15).Find(&selectForYouItemsFirst)
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("RAND()").Limit(15).Find(&selectForYouItemsFirst)
 	var selectForYouItemsSecond []models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Order("RAND()").Limit(15).Find(&selectForYouItemsSecond)
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("RAND()").Limit(15).Find(&selectForYouItemsSecond)
 
 	// Index New Items
 	var newItems []models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Order("id desc").Limit(15).Find(&newItems)
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("id desc").Limit(15).Find(&newItems)
 
 	// Index Categories With Limit Items
 	var categoriesWithItems []models.CategoriesWithItems
 	// Loop the categories
 	for _, category := range categories {
 		var categoriesItems []models.Items
-		config.DB.Scopes(models.WithTranslation("items")).Where("categories_id = ?", category.ID).Limit(15).Find(&categoriesItems)
+		config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Where("categories_id = ?", category.ID).Limit(15).Find(&categoriesItems)
 		categoriesWithItems = append(categoriesWithItems, models.CategoriesWithItems{
 			Category: category,
 			Items:    categoriesItems,
@@ -85,10 +85,10 @@ func IndexItemsAndSubCategoriesWithCategoriesID(c *gin.Context) {
 	config.DB.Scopes(models.WithTranslation("subCategories")).Where("categories_id = ?", categories_id).Find(&subCategories)
 
 	var selectForYouItems []models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Where("categories_id = ?", categories_id).Order("RAND()").Limit(15).Find(&selectForYouItems)
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Where("categories_id = ?", categories_id).Order("RAND()").Limit(15).Find(&selectForYouItems)
 
 	var items []models.Items
-	err := config.DB.Where("categories_id = ?", categories_id).Scopes(Paginate(c.Param("page"), "2"), models.WithTranslation("items")).Find(&items).Error
+	err := config.DB.Preload("Categories").Where("categories_id = ?", categories_id).Scopes(Paginate(c.Param("page"), "14"), models.WithTranslation("items"), models.WithStorageCounts()).Find(&items).Error
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -107,7 +107,7 @@ func CategoriesItemsLoadMore(c *gin.Context) {
 	page := c.Param("page")
 
 	var items []models.Items
-	err := config.DB.Where("categories_id = ?", categoryID).Scopes(Paginate(page, "2"), models.WithTranslation("items")).Find(&items).Error
+	err := config.DB.Preload("Categories").Where("categories_id = ?", categoryID).Scopes(Paginate(page, "14"), models.WithTranslation("items"), models.WithStorageCounts()).Find(&items).Error
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -121,7 +121,7 @@ func CategoriesItemsLoadMore(c *gin.Context) {
 func AppShowItem(c *gin.Context) {
 	id := c.Param("id")
 	var item models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Where("id = ?", id).First(&item)
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items")).Where("id = ?", id).First(&item)
 
 	var allStorage models.StoragesItems
 	var allStorageCount int64
@@ -140,9 +140,10 @@ func AppShowItem(c *gin.Context) {
 	}
 
 	allItemCounts := allStorageCount + ecommarceStorageCount
+	item.Qty = float64(allItemCounts)
 
 	var relatedItems []models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Order("RAND()").Limit(10).Find(&relatedItems)
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("RAND()").Limit(14).Find(&relatedItems)
 
 	c.JSON(200, gin.H{
 		"item":          item,
@@ -158,7 +159,7 @@ func AppIndexItemsWithSubCategories(c *gin.Context) {
 	config.DB.Scopes(models.WithTranslation("subCategories")).Where("id = ?", subCategoryID).Find(&subCategory)
 
 	var items []models.Items
-	err := config.DB.Scopes(models.WithTranslation("items")).Where("sub_categories_id = ?", subCategoryID).Scopes(Paginate(c.Param("page"), "14")).Find(&items).Error
+	err := config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Where("sub_categories_id = ?", subCategoryID).Scopes(Paginate(c.Param("page"), "14")).Find(&items).Error
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -205,17 +206,40 @@ func IndexShowAllItem(c *gin.Context) {
 	var items []models.Items
 	if indexType == "selectForYou" {
 		config.DB.Order("RAND()").
-			Scopes(Paginate(c.Param("page"), "14"), models.WithTranslation("items")).
+			Preload("Categories").
+			Scopes(Paginate(c.Param("page"), "14"), models.WithTranslation("items"), models.WithStorageCounts()).
 			Find(&items)
 	}
 
 	if indexType == "newItems" {
 		config.DB.Order("id desc").
-			Scopes(Paginate(c.Param("page"), "14"), models.WithTranslation("items")).
+			Preload("Categories").
+			Scopes(Paginate(c.Param("page"), "14"), models.WithTranslation("items"), models.WithStorageCounts()).
 			Find(&items)
 	}
 
 	c.JSON(200, gin.H{
 		"items": items,
 	})
+}
+
+// TestItemsType
+
+// TestItemsWithStorageCount ..
+func TestItemsWithStorageCount(c *gin.Context) {
+	var items []models.Items
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("RAND()").Limit(15).Find(&items)
+
+	// err := config.DB.Scopes(models.WithStorageCounts()).Find(&items).Error
+	// if err != nil {
+	// 	c.JSON(200, gin.H{
+	// 		"error": err,
+	// 	})
+	// 	return
+	// }
+
+	c.JSON(200, gin.H{
+		"items": items,
+	})
+
 }

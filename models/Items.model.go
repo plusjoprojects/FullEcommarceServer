@@ -11,6 +11,13 @@ type TranslationsLocaleItems struct {
 	Description string `json:"description"`
 }
 
+// WithStorageCounts ..
+func WithStorageCounts() func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Model(&Items{}).Select("storages_items.qty,items.*").Joins("LEFT JOIN storages_items ON storages_items.item_id = items.ID AND storages_items.storage_scope = 'All'")
+	}
+}
+
 // Items ..
 type Items struct {
 	Title              string                  `json:"title"`
@@ -18,6 +25,7 @@ type Items struct {
 	Image              string                  `json:"image"`
 	Price              float64                 `json:"price"`
 	Discount           float64                 `json:"discount" gorm:"default:0"`
+	OriginalPrice      float64                 `json:"original_price" gorm:"default:0"`
 	New                bool                    `json:"new" gorm:"default:false"`
 	Barcode            string                  `json:"barcode"`
 	Color              string                  `json:"color"`
@@ -26,6 +34,7 @@ type Items struct {
 	Packing            string                  `json:"packing"`
 	CategoriesID       uint                    `json:"categories_id"`
 	SubCategoriesID    uint                    `json:"sub_categories_id"`
+	Qty                float64                 `json:"qty"`
 	Categories         Categories              `json:"categories" gorm:"foreignKey:CategoriesID;references:ID"`
 	SubCategories      SubCategories           `json:"subCategories" gorm:"foreignKey:SubCategoriesID;references:ID"`
 	Translations       []Translations          `json:"translations" gorm:"foreignKey:ForeignKey;references:ID"`

@@ -49,6 +49,7 @@ func IndexUserAddresses(c *gin.Context) {
 type StoreAppOrderType struct {
 	Order      models.Orders       `json:"order"`
 	OrderItems []models.OrderItems `json:"order_items"`
+	Address    models.Addresses    `json:"address"`
 }
 
 // CheckDiscountCodeValid ..
@@ -93,6 +94,12 @@ func StoreAppOrder(c *gin.Context) {
 	c.ShouldBindJSON(&data)
 
 	order := data.Order
+	address := data.Address
+	if address.ID == 0 {
+		config.DB.Create(&address)
+		order.AddressID = address.ID
+	}
+
 	config.DB.Create(&order)
 
 	for _, item := range data.OrderItems {
@@ -127,7 +134,7 @@ func AppSearch(c *gin.Context) {
 	text := c.Param("text")
 
 	var items []models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Where("title LIKE ?", "%"+text+"%").Find(&items)
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Where("title LIKE ?", "%"+text+"%").Find(&items)
 
 	c.JSON(200, gin.H{
 		"items": items,
@@ -145,7 +152,7 @@ func AppIndexItemsWithIDS(c *gin.Context) {
 	c.ShouldBindJSON(&data)
 
 	var items []models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Find(&items, data.IDS)
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Find(&items, data.IDS)
 
 	c.JSON(200, gin.H{
 		"items": items,

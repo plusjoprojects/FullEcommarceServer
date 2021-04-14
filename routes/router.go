@@ -188,6 +188,7 @@ func Setup() {
 	// Testes Group
 	tests := r.Group("/tests")
 	tests.GET("/test_joins", controllers.TestJoins)
+	tests.GET("/items", controllers.TestItemsWithStorageCount)
 
 	r.Run(":8082")
 }

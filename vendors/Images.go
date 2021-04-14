@@ -32,7 +32,7 @@ func ResizeImage(imageName string, outputName string, path string, format string
 
 	// resize to width 1000 using Lanczos resampling
 	// and preserve aspect ratio
-	m := resize.Resize(200, 0, img, resize.Lanczos3)
+	m := resize.Resize(600, 600, img, resize.Lanczos2)
 
 	out, err := os.Create(path + outputName)
 	if err != nil {
