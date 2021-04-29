@@ -16,6 +16,7 @@ type Categories struct {
 	Title              string                       `json:"title"`
 	Description        string                       `json:"description"`
 	Image              string                       `json:"image"`
+	Color              string                       `json:"color"`
 	Translations       []Translations               `json:"translations" gorm:"foreignKey:ForeignKey;references:ID"`
 	TranslationsLocale TranslationsLocaleCategories `json:"translationsLocale" gorm:"foreignKey:ForeignKey;references:ID"`
 	gorm.Model

@@ -34,7 +34,15 @@ type Items struct {
 	Packing            string                  `json:"packing"`
 	CategoriesID       uint                    `json:"categories_id"`
 	SubCategoriesID    uint                    `json:"sub_categories_id"`
-	Qty                float64                 `json:"qty"`
+	Section            string                  `json:"section"`
+	Stand              string                  `json:"stand"`
+	Row                string                  `json:"row"`
+	Part               string                  `json:"part"`
+	BuyPrice           float64                 `json:"buyPrice"`
+	JomlaPrice         float64                 `json:"jomlaPrice"`
+	JomltAljomlaPrice  float64                 `json:"jomltAljomlaPrice"`
+	Reorder            float64                 `json:"reorder"`
+	StoragesItems      StoragesItems           `json:"storagesItems" gorm:"foreignKey:ItemID;references:ID"`
 	Categories         Categories              `json:"categories" gorm:"foreignKey:CategoriesID;references:ID"`
 	SubCategories      SubCategories           `json:"subCategories" gorm:"foreignKey:SubCategoriesID;references:ID"`
 	Translations       []Translations          `json:"translations" gorm:"foreignKey:ForeignKey;references:ID"`

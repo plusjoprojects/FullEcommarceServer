@@ -277,3 +277,107 @@ func DeleteUser(c *gin.Context) {
 		"users": users,
 	})
 }
+
+// HR Controller ...
+
+// StoreEmployeeType ..
+type StoreEmployeeType struct {
+	User     models.User     `json:"user"`
+	Employee models.Employee `json:"employee"`
+}
+
+// StoreEmployee ..
+func StoreEmployee(c *gin.Context) {
+	var employeeType StoreEmployeeType
+	if err := c.ShouldBindJSON(&employeeType); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user := employeeType.User
+	employee := employeeType.Employee
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+	user.Password = string(hashedPassword)
+	if err := config.DB.Create(&user).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// StoreEmployee
+	employee.UserID = user.ID
+
+	token, err := vendors.CreateToken(user.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var users []models.User
+	config.DB.Preload("Roles").Preload("Employee").Where("roles_id != ?", 0).Find(&users)
+	config.DB.Preload("Roles").Preload("Employee").Where("id = ?", user.ID).First(&user)
+
+	c.JSON(http.StatusOK, gin.H{"user": user, "token": token, "users": users})
+}
+
+// IndexEmployee ..
+func IndexEmployee(c *gin.Context) {
+	var users []models.User
+	config.DB.Preload("Roles").Preload("Employee").Where("roles_id != ?", 0).Find(&users)
+
+	c.JSON(http.StatusOK, gin.H{"users": users})
+}
+
+// DeleteEmployee ...
+func DeleteEmployee(c *gin.Context) {
+	ID := c.Param("id")
+	config.DB.Delete(&models.User{}, ID)
+	var users []models.User
+	config.DB.Preload("Roles").Preload("Employee").Where("roles_id != ?", 0).Find(&users)
+	c.JSON(200, gin.H{
+		"users": users,
+	})
+}
+
+// UpdateEmployee ...
+func UpdateEmployee(c *gin.Context) {
+	var employeeType StoreEmployeeType
+	if err := c.ShouldBindJSON(&employeeType); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user := employeeType.User
+	employee := employeeType.Employee
+
+	if user.Password == "" {
+		config.DB.Model(&models.User{}).Where("id = ?", user.ID).Updates(models.User{
+			Name:    user.Name,
+			Phone:   user.Phone,
+			RolesID: user.RolesID,
+		})
+	} else {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+		if err != nil {
+			panic(err)
+		}
+		config.DB.Model(&models.User{}).Where("id = ?", user.ID).Updates(models.User{
+			Name:     user.Name,
+			Phone:    user.Phone,
+			RolesID:  user.RolesID,
+			Password: string(hashedPassword),
+		})
+	}
+
+	config.DB.Save(&employee)
+
+	var users []models.User
+	config.DB.Preload("Roles").Preload("Employee").Where("roles_id != ?", 0).Find(&users)
+
+	c.JSON(200, gin.H{
+		"users": users,
+	})
+}

@@ -69,3 +69,59 @@ func DeleteUserRole(c *gin.Context) {
 		"roles": roles,
 	})
 }
+
+// StoreDelegate ..
+func StoreDelegate(c *gin.Context) {
+	var delegate models.Delegates
+	c.ShouldBindJSON(&delegate)
+
+	config.DB.Create(&delegate)
+
+	c.JSON(200, gin.H{
+		"delegate": delegate,
+	})
+}
+
+// IndexDelegates ..
+func IndexDelegates(c *gin.Context) {
+	var delegates []models.Delegates
+
+	config.DB.Find(&delegates)
+
+	c.JSON(200, gin.H{
+		"delegates": delegates,
+	})
+}
+
+// DeleteDelegate ..
+func DeleteDelegate(c *gin.Context) {
+	ID := c.Param("id")
+
+	config.DB.Delete(&models.Delegates{}, ID)
+
+	var delegates []models.Delegates
+	config.DB.Find(&delegates)
+
+	c.JSON(200, gin.H{
+		"delegates": delegates,
+	})
+}
+
+// UpdateDelegate ..
+func UpdateDelegate(c *gin.Context) {
+	var delegate models.Delegates
+
+	c.ShouldBindJSON(&delegate)
+
+	config.DB.Model(&delegate).Update(&delegate)
+
+	var delegates []models.Delegates
+
+	config.DB.Find(&delegates)
+
+	c.JSON(200, gin.H{
+		"delegates": delegates,
+		"delegate":  delegate,
+	})
+
+}

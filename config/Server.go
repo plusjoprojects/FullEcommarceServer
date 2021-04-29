@@ -25,7 +25,7 @@ func ServerInformations() Server {
 
 	} else {
 		publicPath = "/var/www/" + serverName + "/"
-		serverURI = "http://35.224.42.25:8081/"
+		serverURI = "http://35.232.199.110:8082/"
 	}
 
 	ServerInfo = Server{

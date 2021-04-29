@@ -29,6 +29,19 @@ func AddPurchases(c *gin.Context) {
 	// Create Purchases Table
 	config.DB.Create(&addPurchase.Purchases)
 
+	// check if payment type is 'ذمم'
+	if addPurchase.Purchases.BillType == 1 {
+		var client models.Clients
+		config.DB.Where("ID = ?", addPurchase.Purchases.ClientsID).First(&client)
+
+		lastBalance := client.Balance
+		newBalance := lastBalance - addPurchase.Purchases.Net
+
+		config.DB.Model(&models.Clients{}).Where("ID = ?", addPurchase.Purchases.ClientsID).Updates(&models.Clients{
+			Balance: newBalance,
+		})
+	}
+
 	// Create Purchases Items
 
 	for _, item := range addPurchase.PurchasesItems {
@@ -42,9 +55,7 @@ func AddPurchases(c *gin.Context) {
 			Storage:       item.Storage,
 		}
 		config.DB.Create(&PurchaseItem) // Save And End
-
 		// Now Store Item in Storages Items
-
 		// First Check if the item with same scope is avaliable
 		var StorageItemsCount int64
 		config.DB.Model(models.StoragesItems{}).Where(models.StoragesItems{StorageScope: item.Storage, ItemID: item.ID}).

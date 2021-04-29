@@ -11,6 +11,7 @@ type Orders struct {
 	Type          string       `json:"type"`
 	AddressID     uint         `json:"address_id"`
 	UserID        uint         `json:"user_id"`
+	EmployeeID    uint         `json:"employee_id" gorm:"default:0"`
 	DiscountID    uint         `json:"discount_id"`
 	Note          string       `json:"note"`
 	PaymentMethod string       `json:"payment_method"`

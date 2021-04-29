@@ -270,14 +270,6 @@ func StoreItems(c *gin.Context) {
 
 	config.DB.Scopes(models.WithTranslation("items")).Preload("Categories").Preload("SubCategories").Where("id = ?", item.ID).First(&item)
 
-	storagesItems := models.StoragesItems{
-		ItemID:       item.ID,
-		StorageScope: "All",
-		Qty:          0,
-	}
-
-	config.DB.Create(&storagesItems)
-
 	c.JSON(200, gin.H{
 		"item": item,
 	})
@@ -286,7 +278,7 @@ func StoreItems(c *gin.Context) {
 // IndexItems ..
 func IndexItems(c *gin.Context) {
 	var items []models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Preload("Categories").Preload("SubCategories").Find(&items)
+	config.DB.Scopes(models.WithTranslation("items")).Preload("StoragesItems").Preload("Categories").Preload("SubCategories").Find(&items)
 
 	c.JSON(200, gin.H{
 		"items": items,
@@ -306,11 +298,8 @@ func UpdateItem(c *gin.Context) {
 	UpdateTranslations("items", "title", item.ID, item.TranslationsLocale.Title)
 	UpdateTranslations("items", "description", item.ID, item.TranslationsLocale.Description)
 
-	var items []models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Preload("Categories").Preload("SubCategories").Find(&items)
-
 	c.JSON(200, gin.H{
-		"items": items,
+		"item": item,
 	})
 }
 
@@ -376,7 +365,7 @@ func DestroyItem(c *gin.Context) {
 	config.DB.Delete(&models.Items{}, id)
 
 	var items []models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Preload("Categories").Preload("SubCategories").Find(&items)
+	config.DB.Scopes(models.WithTranslation("items")).Preload("StoragesItems").Preload("Categories").Preload("SubCategories").Find(&items)
 
 	c.JSON(200, gin.H{
 		"items": items,

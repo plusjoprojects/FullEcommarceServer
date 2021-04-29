@@ -25,6 +25,10 @@ func SetupDB() {
 	}
 	// User Models Setup
 	database.AutoMigrate(&models.User{})
+	database.AutoMigrate(&models.Employee{})
+	database.AutoMigrate(&models.Delegates{})
+	database.AutoMigrate(&models.DelegatesStorage{})
+	database.AutoMigrate(&models.Clients{})
 	database.AutoMigrate(&models.AuthClients{})
 	database.AutoMigrate(&models.AuthTokens{})
 	database.AutoMigrate(&models.Roles{})
@@ -32,9 +36,16 @@ func SetupDB() {
 	database.AutoMigrate(&models.SubCategories{})
 	database.AutoMigrate(&models.Colors{})
 	database.AutoMigrate(&models.Items{})
+	database.AutoMigrate(&models.ItemsToDelegate{})
 	database.AutoMigrate(&models.Companies{})
 	database.AutoMigrate(&models.Storages{})
 	database.AutoMigrate(&models.Purchases{})
+	database.AutoMigrate(&models.Sales{})
+	database.AutoMigrate(&models.SalesItems{})
+	database.AutoMigrate(&models.CatchReceipt{})
+	database.AutoMigrate(&models.PaymentReceipt{})
+	database.AutoMigrate(&models.ExchangeReceipt{})
+	database.AutoMigrate(&models.MajorExpenses{})
 	database.AutoMigrate(&models.PurchasesItems{})
 	database.AutoMigrate(&models.StoragesItems{})
 	database.AutoMigrate(&models.StorageItemsLogs{})
@@ -48,5 +59,4 @@ func SetupDB() {
 	database.AutoMigrate(&models.Translations{})
 	// Confirm the DB variables
 	DB = database
-
 }

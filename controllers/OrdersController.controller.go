@@ -68,10 +68,22 @@ func SendNotificationWithUserID(userID uint, orderID uint, title string, body st
 	vendors.SendNotification(tokens, message, data)
 }
 
+// OrderActionsType ..
+type OrderActionsType struct {
+	OrderID    uint   `json:"order_id"`
+	ActionType string `json:"action_Type"`
+	EmployeeID uint   `json:"employee_id"`
+}
+
 // OrderActions ..
 func OrderActions(c *gin.Context) {
-	orderID := c.Param("id")
-	actionType := c.Param("type")
+
+	var data OrderActionsType
+	c.ShouldBindJSON(&data)
+
+	orderID := data.OrderID
+	actionType := data.ActionType
+	employeeID := data.EmployeeID
 
 	var order models.Orders
 	config.DB.Where("id = ?", orderID).First(&order)
@@ -79,6 +91,7 @@ func OrderActions(c *gin.Context) {
 	if actionType == "approve" {
 		// Here Function For approve
 		order.Status = 1
+		order.EmployeeID = employeeID
 		config.DB.Save(&order)
 		var title string = "تم تجهيز الطلبية"
 		var body string = "تم تجهيز طلبيتك وسوف يتم ارسالها"

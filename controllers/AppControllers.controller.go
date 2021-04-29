@@ -42,20 +42,20 @@ func AppIndex(c *gin.Context) {
 
 	// Index Select For You Items
 	var selectForYouItemsFirst []models.Items
-	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("RAND()").Limit(15).Find(&selectForYouItemsFirst)
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("RAND()").Limit(20).Find(&selectForYouItemsFirst)
 	var selectForYouItemsSecond []models.Items
-	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("RAND()").Limit(15).Find(&selectForYouItemsSecond)
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("RAND()").Limit(20).Find(&selectForYouItemsSecond)
 
 	// Index New Items
 	var newItems []models.Items
-	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("id desc").Limit(15).Find(&newItems)
+	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("id desc").Limit(20).Find(&newItems)
 
 	// Index Categories With Limit Items
 	var categoriesWithItems []models.CategoriesWithItems
 	// Loop the categories
 	for _, category := range categories {
 		var categoriesItems []models.Items
-		config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Where("categories_id = ?", category.ID).Limit(15).Find(&categoriesItems)
+		config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Where("categories_id = ?", category.ID).Limit(30).Find(&categoriesItems)
 		categoriesWithItems = append(categoriesWithItems, models.CategoriesWithItems{
 			Category: category,
 			Items:    categoriesItems,
@@ -140,7 +140,7 @@ func AppShowItem(c *gin.Context) {
 	}
 
 	allItemCounts := allStorageCount + ecommarceStorageCount
-	item.Qty = float64(allItemCounts)
+	// item.Qty = float64(allItemCounts)
 
 	var relatedItems []models.Items
 	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Order("RAND()").Limit(14).Find(&relatedItems)
