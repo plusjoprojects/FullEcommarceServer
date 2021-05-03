@@ -134,7 +134,7 @@ func AppSearch(c *gin.Context) {
 	text := c.Param("text")
 
 	var items []models.Items
-	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Where("title LIKE ?", "%"+text+"%").Find(&items)
+	config.DB.Preload("Categories").Preload("StoragesItems").Scopes(models.WithTranslation("items")).Where("title LIKE ?", "%"+text+"%").Find(&items)
 
 	c.JSON(200, gin.H{
 		"items": items,
@@ -152,7 +152,7 @@ func AppIndexItemsWithIDS(c *gin.Context) {
 	c.ShouldBindJSON(&data)
 
 	var items []models.Items
-	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Find(&items, data.IDS)
+	config.DB.Preload("Categories").Preload("StoragesItems").Scopes(models.WithTranslation("items")).Find(&items, data.IDS)
 
 	c.JSON(200, gin.H{
 		"items": items,
