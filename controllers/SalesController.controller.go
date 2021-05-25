@@ -6,6 +6,7 @@ import (
 	"server/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 )
 
 // AddSalesType ..
@@ -75,4 +76,20 @@ func GetSalesLastID(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"ID": ID,
 	})
+}
+
+// ShowSale ..
+func ShowSale(c *gin.Context) {
+	ID := c.Param("id")
+
+	var sale models.Sales
+
+	config.DB.Preload("SalesItems", func(db *gorm.DB) *gorm.DB {
+		return db.Preload("Item")
+	}).Preload("Clients").Where("id = ?", ID).Find(&sale)
+
+	c.JSON(200, gin.H{
+		"sale": sale,
+	})
+
 }

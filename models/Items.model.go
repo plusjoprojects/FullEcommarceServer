@@ -42,6 +42,7 @@ type Items struct {
 	JomlaPrice         float64                 `json:"jomlaPrice"`
 	JomltAljomlaPrice  float64                 `json:"jomltAljomlaPrice"`
 	Reorder            float64                 `json:"reorder"`
+	PayOnApp           bool                    `json:"payOnApp" gorm:"default:1"`
 	StoragesItems      StoragesItems           `json:"storagesItems" gorm:"foreignKey:ItemID;references:ID"`
 	Categories         Categories              `json:"categories" gorm:"foreignKey:CategoriesID;references:ID"`
 	SubCategories      SubCategories           `json:"subCategories" gorm:"foreignKey:SubCategoriesID;references:ID"`

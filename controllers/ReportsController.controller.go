@@ -157,28 +157,56 @@ func ReportSalesClients(c *gin.Context) {
 	})
 }
 
+// ReportsPurchasesType ..
+type ReportsPurchasesType struct {
+	Date     models.DateReport `json:"date"`
+	ClientID string            `json:"clientID"`
+	BillType string            `json:"billType"`
+}
+
 // ReportsPurchases ..
 func ReportsPurchases(c *gin.Context) {
-	ID := c.Param("id")
 
-	var fromToDate models.DateReport
-	c.ShouldBindJSON(&fromToDate)
+	var data ReportsPurchasesType
+	c.ShouldBindJSON(&data)
 
-	start, end := vendors.BetweenDates(fromToDate.From, fromToDate.To)
+	clientID := data.ClientID
 
-	var receipts []models.Purchases
-	if ID == "All" {
-		config.DB.
-			Where("created_at BETWEEN ? AND ?", start, end).
-			Preload("Clients").
-			Order("id desc").Find(&receipts)
+	// Clients
+	var clientQuery, clientValue string
+	if clientID == "All" {
+		clientQuery = "clients_id LIKE ?"
+		clientValue = "%%"
 	} else {
-		config.DB.
-			Where("created_at BETWEEN ? AND ?", start, end).
-			Where("clients_id = ?", ID).
-			Preload("Clients").
-			Order("id desc").Find(&receipts)
+		clientQuery = "clients_id = ?"
+		clientValue = clientID
 	}
+
+	// Dates
+	date := data.Date
+	start, end := vendors.BetweenDates(date.From, date.To)
+
+	billType := data.BillType
+
+	var billQuery, billValue string
+	if billType == "All" {
+		billQuery = "bill_type LIKE ?"
+		billValue = "%%"
+	} else {
+		billQuery = "bill_type = ?"
+		billValue = billType
+	}
+
+	// Receipt
+	var receipts []models.Purchases
+
+	config.DB.Preload("Clients").Preload("PurchasesItems", func(db *gorm.DB) *gorm.DB {
+		return db.Preload("Item")
+	}).
+		Where(clientQuery, clientValue).
+		Where(billQuery, billValue).
+		Where("created_at BETWEEN ? AND ?", start, end).
+		Find(&receipts)
 
 	c.JSON(200, gin.H{
 		"receipts": receipts,
@@ -187,30 +215,49 @@ func ReportsPurchases(c *gin.Context) {
 
 // ReportsSales ..
 func ReportsSales(c *gin.Context) {
-	ID := c.Param("id")
 
-	var fromToDate models.DateReport
-	c.ShouldBindJSON(&fromToDate)
+	var data ReportsPurchasesType
+	c.ShouldBindJSON(&data)
 
-	start, end := vendors.BetweenDates(fromToDate.From, fromToDate.To)
+	clientID := data.ClientID
 
-	var receipts []models.Sales
-	if ID == "All" {
-		config.DB.
-			Where("created_at BETWEEN ? AND ?", start, end).
-			Preload("Clients").
-			Preload("Delegates").
-			Order("id desc").Find(&receipts)
+	// Clients
+	var clientQuery, clientValue string
+	if clientID == "All" {
+		clientQuery = "clients_id LIKE ?"
+		clientValue = "%%"
 	} else {
-		config.DB.
-			Where("created_at BETWEEN ? AND ?", start, end).
-			Where("clients_id = ?", ID).
-			Preload("Delegates").
-			Preload("Clients").
-			Order("id desc").Find(&receipts)
+		clientQuery = "clients_id = ?"
+		clientValue = clientID
 	}
+	// Dates
+	date := data.Date
+	start, end := vendors.BetweenDates(date.From, date.To)
+
+	billType := data.BillType
+
+	var billQuery, billValue string
+	if billType == "All" {
+		billQuery = "bill_type LIKE ?"
+		billValue = "%%"
+	} else {
+		billQuery = "bill_type = ?"
+		billValue = billType
+	}
+
+	// Receipt
+	var receipts []models.Sales
+
+	config.DB.Preload("Clients").Preload("SalesItems", func(db *gorm.DB) *gorm.DB {
+		return db.Preload("Item")
+	}).
+		Where(clientQuery, clientValue).
+		Where(billQuery, billValue).
+		Where("created_at BETWEEN ? AND ?", start, end).
+		Find(&receipts)
 
 	c.JSON(200, gin.H{
 		"receipts": receipts,
 	})
+
 }

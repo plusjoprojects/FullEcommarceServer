@@ -85,7 +85,7 @@ func IndexItemsAndSubCategoriesWithCategoriesID(c *gin.Context) {
 	config.DB.Scopes(models.WithTranslation("subCategories")).Where("categories_id = ?", categories_id).Find(&subCategories)
 
 	var selectForYouItems []models.Items
-	config.DB.Preload("Categories").Scopes(models.WithTranslation("items"), models.WithStorageCounts()).Where("categories_id = ?", categories_id).Order("RAND()").Limit(15).Find(&selectForYouItems)
+	config.DB.Preload("Categories").Preload("StoragesItems").Scopes(models.WithTranslation("items")).Where("categories_id = ?", categories_id).Order("RAND()").Limit(15).Find(&selectForYouItems)
 
 	var items []models.Items
 	err := config.DB.Preload("Categories").Preload("StoragesItems").Where("categories_id = ?", categories_id).Scopes(Paginate(c.Param("page"), "14"), models.WithTranslation("items")).Find(&items).Error

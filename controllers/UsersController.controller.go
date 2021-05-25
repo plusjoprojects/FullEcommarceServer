@@ -125,3 +125,20 @@ func UpdateDelegate(c *gin.Context) {
 	})
 
 }
+
+// GetDriversList ..
+func GetDriversList(c *gin.Context) {
+	var driverRole models.Roles
+
+	config.DB.Where("scopes LIKE ?", "%driver%").Find(&driverRole)
+
+	roleID := driverRole.ID
+
+	var drivers []models.User
+
+	config.DB.Preload("Roles").Preload("Employee").Where("roles_id = ?", roleID).Find(&drivers)
+
+	c.JSON(200, gin.H{
+		"drivers": drivers,
+	})
+}

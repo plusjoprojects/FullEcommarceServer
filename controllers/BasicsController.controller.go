@@ -323,14 +323,17 @@ func SearchItems(c *gin.Context) {
 	if searchInput.Type == "title" {
 		config.DB.Scopes(models.WithTranslation("items")).Where("title Like ?", "%"+searchInput.ItemTitle+"%").
 			Limit(15).
+			Preload("Categories").Preload("StoragesItems").Preload("SubCategories").
 			Find(&items)
 	} else if searchInput.Type == "barcode" {
 		config.DB.Scopes(models.WithTranslation("items")).Where("barcode Like ?", "%"+searchInput.ItemBarcode+"%").
 			Limit(15).
+			Preload("Categories").Preload("StoragesItems").Preload("SubCategories").
 			Find(&items)
 	} else if searchInput.Type == "ID" {
 		config.DB.Scopes(models.WithTranslation("items")).Where("id = ?", searchInput.ItemID).
 			Limit(15).
+			Preload("Categories").Preload("StoragesItems").Preload("SubCategories").
 			Find(&items)
 	}
 
@@ -344,7 +347,7 @@ func ShowItem(c *gin.Context) {
 	id := c.Param("id")
 
 	var item models.Items
-	config.DB.Scopes(models.WithTranslation("items")).Preload("Categories").Preload("SubCategories").Where("id = ?", id).First(&item)
+	config.DB.Scopes(models.WithTranslation("items")).Preload("Categories").Preload("StoragesItems").Preload("SubCategories").Where("id = ?", id).First(&item)
 
 	var itemStorages []models.StoragesItems
 	config.DB.Where("item_id = ?", id).Find(&itemStorages)
@@ -369,6 +372,66 @@ func DestroyItem(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"items": items,
+	})
+}
+
+// ShowBackwordItem ..
+func ShowBackwordItem(c *gin.Context) {
+	ID := c.Param("id")
+
+	var item models.Items
+
+	if ID == "0" {
+		err := config.DB.Preload("Categories").Preload("SubCategories").Preload("StoragesItems").Scopes(models.WithTranslation("items")).Last(&item).Error
+		if err != nil {
+			c.JSON(500, gin.H{
+				"error": "error",
+			})
+			return
+		}
+
+	} else {
+		err := config.DB.Preload("Categories").Preload("SubCategories").Preload("StoragesItems").Scopes(models.WithTranslation("items")).Where("id < ?", ID).Last(&item).Error
+		if err != nil {
+			c.JSON(500, gin.H{
+				"error": "error",
+			})
+			return
+		}
+	}
+
+	c.JSON(200, gin.H{
+		"item": item,
+	})
+}
+
+// ShowForwardItem ..
+func ShowForwardItem(c *gin.Context) {
+	ID := c.Param("id")
+
+	var item models.Items
+
+	if ID == "0" {
+		err := config.DB.Preload("Categories").Preload("SubCategories").Preload("StoragesItems").Scopes(models.WithTranslation("items")).Last(&item).Error
+		if err != nil {
+			c.JSON(500, gin.H{
+				"error": "error",
+			})
+			return
+		}
+
+	} else {
+		err := config.DB.Preload("Categories").Preload("SubCategories").Preload("StoragesItems").Scopes(models.WithTranslation("items")).Where("id > ?", ID).Last(&item).Error
+		if err != nil {
+			c.JSON(500, gin.H{
+				"error": "error",
+			})
+			return
+		}
+	}
+
+	c.JSON(200, gin.H{
+		"item": item,
 	})
 }
 

@@ -15,7 +15,7 @@ import (
 func IndexNewOrders(c *gin.Context) {
 	status := c.Param("status")
 	var orders []models.Orders
-	config.DB.Where("type = ?", "Application").Where("status = ?", status).Find(&orders)
+	config.DB.Preload("Drivers").Where("type = ?", "Application").Where("status = ?", status).Find(&orders)
 
 	c.JSON(200, gin.H{
 		"orders": orders,
@@ -73,6 +73,7 @@ type OrderActionsType struct {
 	OrderID    uint   `json:"order_id"`
 	ActionType string `json:"action_Type"`
 	EmployeeID uint   `json:"employee_id"`
+	DriverID   uint   `json:"driverID"`
 }
 
 // OrderActions ..
@@ -92,6 +93,7 @@ func OrderActions(c *gin.Context) {
 		// Here Function For approve
 		order.Status = 1
 		order.EmployeeID = employeeID
+
 		config.DB.Save(&order)
 		var title string = "تم تجهيز الطلبية"
 		var body string = "تم تجهيز طلبيتك وسوف يتم ارسالها"
@@ -101,6 +103,7 @@ func OrderActions(c *gin.Context) {
 	if actionType == "sendToDelivery" {
 		// Here Function For sendToDelivery
 		order.Status = 2
+		order.DriverID = data.DriverID
 		config.DB.Save(&order)
 		var title string = "تم ارسال طلبك"
 		var body string = "تم ارسال طلبك وطلبك حاليا قيد التوصيل"

@@ -53,6 +53,9 @@ func Setup() {
 	user.GET("/roles/delete/:id", controllers.DeleteUserRole)
 	user.GET("/clients/index", controllers.ClientsIndex)
 
+	// Drivers
+	user.GET("/drivers/index", controllers.GetDriversList)
+
 	user.POST("/employee/store", controllers.StoreEmployee)
 	user.GET("/employee/index", controllers.IndexEmployee)
 	user.GET("/employee/delete/:id", controllers.DeleteEmployee)
@@ -64,6 +67,11 @@ func Setup() {
 	user.GET("/delegates/delete/:id", controllers.DeleteDelegate)
 	user.POST("/delegates/update", controllers.UpdateDelegate)
 	user.POST("/delegates/itemsToDelegate/store", controllers.StoreItemsToDelegate)
+	user.GET("/delegate/show/:ID", controllers.ShowDelegate)
+
+	// --------- Delegates ---------//
+	delegates := r.Group("/delegates")
+	delegates.POST("/exportItemFromDelegateStorage", controllers.ExportItemFromDelegateToStorage)
 
 	// ---------- Clients --------- //
 	clients := r.Group("/clients")
@@ -74,6 +82,7 @@ func Setup() {
 	clients.GET("/index/forPurchase", controllers.IndexClientsForPurchase)
 	clients.GET("/index/forSales", controllers.IndexClientsForSales)
 	clients.GET("/destroy/:id", controllers.DestroyClient)
+	clients.GET("/show/:id", controllers.ShowClient)
 
 	// --------- Basics ------- //
 	basics := r.Group("/basics")
@@ -107,6 +116,8 @@ func Setup() {
 	basics.GET("/items/destroy/:id", controllers.DestroyItem)
 	basics.GET("/items/show/:id", controllers.ShowItem)
 	basics.POST("/items/search", controllers.SearchItems)
+	basics.GET("/items/showBackword/:id", controllers.ShowBackwordItem)
+	basics.GET("/items/showForward/:id", controllers.ShowForwardItem)
 
 	// Companies
 	basics.POST("/companies/store", controllers.StoreCompany)
@@ -146,18 +157,23 @@ func Setup() {
 	// StorePurchases
 	purchases.POST("/store", controllers.AddPurchases)
 	purchases.GET("/index", controllers.IndexPurchases)
+	purchases.GET("/show/:id", controllers.ShowPurchase)
 
 	// ---------- Sales ----------- //
 	sales := r.Group("/sales")
 
 	sales.POST("/store", controllers.AddSale)
 	sales.GET("/LastID", controllers.GetSalesLastID)
+	sales.GET("/show/:id", controllers.ShowSale)
 
 	receipt := r.Group("/receipt")
 
 	receipt.POST("/store/catchReceipt", controllers.StoreCatchReceipt)
 	receipt.POST("/store/paymentReceipt", controllers.StorePaymentReceipt)
 	receipt.POST("/store/exchageReceipt", controllers.StoreExchangeReceipt)
+
+	receipt.POST("/report/catchReceipt", controllers.ReportCatchReceipt)
+	receipt.POST("/report/paymentReceipt", controllers.ReportPaymentReceipt)
 
 	// ------------ Expenses ------------- //
 	expenses := r.Group("/expenses")
@@ -194,8 +210,8 @@ func Setup() {
 	reports.POST("/withDates", controllers.ReportWithDates)
 	reports.POST("/clients/purchasesClients/:id", controllers.ReportPurchasesClients)
 	reports.POST("/clients/salesClients/:id", controllers.ReportSalesClients)
-	reports.POST("/receipts/Purchases/:id", controllers.ReportsPurchases)
-	reports.POST("/receipts/Sales/:id", controllers.ReportsSales)
+	reports.POST("/receipts/Purchases", controllers.ReportsPurchases)
+	reports.POST("/receipts/Sales", controllers.ReportsSales)
 
 	// -------- App controllers --------//
 	app := r.Group("/app")
@@ -237,6 +253,7 @@ func Setup() {
 	tests := r.Group("/tests")
 	tests.GET("/test_joins", controllers.TestJoins)
 	tests.GET("/items", controllers.TestItemsWithStorageCount)
+	tests.GET("/white", controllers.TestController)
 
 	r.Run(":8082")
 }

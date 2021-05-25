@@ -17,3 +17,15 @@ func TestJoins(c *gin.Context) {
 		"items": items,
 	})
 }
+
+func TestController(c *gin.Context) {
+	var purchases []models.Purchases
+
+	query := "tax_value LIKE ?"
+
+	config.DB.Where(query, "%2.8%").Find(&purchases)
+
+	c.JSON(200, gin.H{
+		"purchases": purchases,
+	})
+}

@@ -53,6 +53,7 @@ func AddPurchases(c *gin.Context) {
 			PurchasePrice: item.PurchasePrice,
 			Total:         item.Total,
 			Storage:       item.Storage,
+			Tax:           item.Tax,
 		}
 		config.DB.Create(&PurchaseItem) // Save And End
 		// Now Store Item in Storages Items
@@ -84,11 +85,9 @@ func AddPurchases(c *gin.Context) {
 		}
 
 	}
-
 	c.JSON(200, gin.H{
 		"message": "Success",
 	})
-
 }
 
 // IndexPurchases ..
@@ -100,5 +99,19 @@ func IndexPurchases(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"purchases": purchases,
+	})
+}
+
+// ShowPurchase ..
+func ShowPurchase(c *gin.Context) {
+	ID := c.Param("id")
+	var purchase models.Purchases
+	config.DB.Preload("Clients").Preload("PurchasesItems", func(db *gorm.DB) *gorm.DB {
+		return db.Preload("Item")
+	}).Where("id = ?", ID).
+		Find(&purchase)
+
+	c.JSON(200, gin.H{
+		"purchase": purchase,
 	})
 }

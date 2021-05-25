@@ -137,7 +137,7 @@ func IndexAdItems(c *gin.Context) {
 	id := c.Param("id")
 	var adItems []models.AdsItems
 	config.DB.Preload("Item", func(db *gorm.DB) *gorm.DB {
-		return db.Scopes(models.WithTranslation("items"))
+		return db.Preload("StoragesItems").Scopes(models.WithTranslation("items"))
 	}).Where("ads_id = ?", id).Find(&adItems)
 	c.JSON(200, gin.H{
 		"adItems": adItems,
